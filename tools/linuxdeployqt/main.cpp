@@ -85,6 +85,7 @@ int main(int argc, char **argv)
         qInfo() << "   -no-plugins              : Skip plugin deployment.";
         qInfo() << "   -no-strip                : Don't run 'strip' on the binaries.";
         qInfo() << "   -no-translations         : Skip deployment of translations.";
+        qInfo() << "   -platform=<platform>     : qxcb (default), qoffscreen, ...";
         qInfo() << "   -qmake=<path>            : The qmake executable to use.";
         qInfo() << "   -qmldir=<path>           : Scan for QML imports in the given path.";
         qInfo() << "   -show-exclude-libs       : Print exclude libraries list.";
@@ -214,6 +215,7 @@ int main(int argc, char **argv)
     bool skipTranslations = false;
     QStringList qmlDirs;
     QString qmakeExecutable;
+    QString platformName = QLatin1String("qxcb");
     extern QStringList extraQtPlugins;
     extern QStringList excludeLibs;
     extern bool copyCopyrightFiles;
@@ -402,6 +404,10 @@ int main(int argc, char **argv)
                 LogError() << "Missing executable path";
             else
                 additionalExecutables << argument.mid(index+1);
+        } else if (argument.startsWith(QByteArray("-platform"))) {
+            LogDebug() << "Argument found:" << argument;
+            int index = argument.indexOf("=");
+            platformName = argument.mid(index+1);  
         } else if (argument.startsWith(QByteArray("-qmldir"))) {
             LogDebug() << "Argument found:" << argument;
             qmldirArgumentUsed = true;
@@ -454,6 +460,7 @@ int main(int argc, char **argv)
 
     DeploymentInfo deploymentInfo = deployQtLibraries(appDirPath, additionalExecutables,
                                                       qmakeExecutable);
+    deploymentInfo.platformName = platformName;
 
     // Convenience: Look for .qml files in the current directoty if no -qmldir specified.
     if (qmlDirs.isEmpty()) {

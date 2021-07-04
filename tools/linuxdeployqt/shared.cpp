@@ -1195,7 +1195,7 @@ void deployPlugins(const AppDirInfo &appDirInfo, const QString &pluginSourcePath
     // Platform plugin:
     if (containsHowOften(deploymentInfo.deployedLibraries, "libQt5Gui")) {
         LogDebug() << "libQt5Gui detected";
-        pluginList.append("platforms/libqxcb.so");
+        pluginList.append("platforms/lib" + deploymentInfo.platformName + ".so");
 	// Platform plugin contexts - apparently needed to enter special characters
         QStringList platformPluginContexts = QDir(pluginSourcePath +  QStringLiteral("/platforminputcontexts")).entryList(QStringList() << QStringLiteral("*.so"));
         foreach (const QString &plugin, platformPluginContexts) {

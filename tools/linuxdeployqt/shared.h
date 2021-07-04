@@ -103,6 +103,7 @@ public:
     bool useLoaderPath;
     bool isLibrary;
     bool requiresQtWidgetsLibrary;
+    QString platformName;
 };
 
 inline QDebug operator<<(QDebug debug, const AppDirInfo &info);

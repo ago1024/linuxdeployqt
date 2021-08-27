@@ -752,7 +752,8 @@ QString runPatchelf(QStringList options)
 {
     QProcess patchelftool;
     LogDebug() << "options:" << options;
-    patchelftool.start("patchelf", options);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    patchelftool.start(env.value("PATCHELF", "patchelf"), options);
     if (!patchelftool.waitForStarted()) {
         if(patchelftool.errorString().contains("No such file or directory")){
             LogError() << "Could not start patchelf.";

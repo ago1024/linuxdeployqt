@@ -902,7 +902,8 @@ void runStrip(const QString &binaryPath)
     LogDebug() << " checking whether" << resolvedPath << "has an rpath set";
     LogDebug() << "patchelf" << "--print-rpath" << resolvedPath;
     QProcess patchelfread;
-    patchelfread.start("patchelf", QStringList() << "--print-rpath" << resolvedPath);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    patchelfread.start(env.value("PATCHELF", "patchelf"), QStringList() << "--print-rpath" << resolvedPath);
     if (!patchelfread.waitForStarted()) {
         if(patchelfread.errorString().contains("execvp: No such file or directory")){
             LogError() << "Could not start patchelf.";

@@ -32,7 +32,10 @@ target_compile_definitions(linuxdeployqt PRIVATE -DEXCLUDELIST="${EXCLUDELIST}")
 get_target_property (QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
 execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_BINS OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE QT_INSTALL_BINS)
 
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib" CACHE STRING "Install RPATH")
+set_target_properties(linuxdeployqt
+    PROPERTIES
+    INSTALL_RPATH "$ORIGIN/../lib"
+)
 install(TARGETS linuxdeployqt
     RUNTIME DESTINATION ${QT_INSTALL_BINS}
 )

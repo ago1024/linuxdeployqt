@@ -9,7 +9,7 @@ add_definitions("-DLINUXDEPLOYQT_GIT_COMMIT=\"${GIT_COMMIT}\"")
 add_definitions("-DBUILD_DATE=\"${DATE}\"")
 add_definitions("-DBUILD_NUMBER=\"${BUILD_NUMBER}\"")
 
-find_package(Qt5 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
 # update excludelist
 message(STATUS "Updating excludelist...")
@@ -26,5 +26,13 @@ mark_as_advanced(EXCLUDELIST EXCLUDELIST_RESULT)
 
 add_executable(linuxdeployqt main.cpp shared.cpp)
 target_include_directories(linuxdeployqt PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(linuxdeployqt Qt5::Core)
+target_link_libraries(linuxdeployqt Qt6::Core)
 target_compile_definitions(linuxdeployqt PRIVATE -DEXCLUDELIST="${EXCLUDELIST}")
+
+get_target_property (QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_BINS OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE QT_INSTALL_BINS)
+
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib" CACHE STRING "Install RPATH")
+install(TARGETS linuxdeployqt
+    RUNTIME DESTINATION ${QT_INSTALL_BINS}
+)

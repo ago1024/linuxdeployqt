@@ -32,7 +32,6 @@
 #include <iostream>
 #include <QProcess>
 #include <QDir>
-#include <QRegExp>
 #include <QSet>
 #include <QStack>
 #include <QDirIterator>
@@ -303,7 +302,7 @@ bool copyCopyrightFile(QString libPath){
     myProcess->waitForFinished();
     strOut = myProcess->readAllStandardOutput();
 
-     QStringList outputLines = strOut.split("\n", QString::SkipEmptyParts);
+     QStringList outputLines = strOut.split("\n", Qt::SkipEmptyParts);
 
      foreach (QString outputLine, outputLines) {
         if((outputLine.contains("usr/share/doc")) && (outputLine.contains("/copyright")) && (outputLine.contains(" "))){
@@ -352,7 +351,7 @@ LddInfo findDependencyInfo(const QString &binaryPath)
     static const QRegularExpression regexp(QStringLiteral("^.+ => (.+) \\("));
 
     QString output = ldd.readAllStandardOutput();
-    QStringList outputLines = output.split("\n", QString::SkipEmptyParts);
+    QStringList outputLines = output.split("\n", Qt::SkipEmptyParts);
     if (outputLines.size() < 2) {
         if ((output.contains("statically linked") == false)){
             LogError() << "Could not parse ldd output under 2 lines:" << output;
@@ -362,6 +361,9 @@ LddInfo findDependencyInfo(const QString &binaryPath)
 
     foreach (QString outputLine, outputLines) {
 
+       if(outputLine.contains("libQt6")) {
+               qtDetected = 6;
+       }
        if(outputLine.contains("libQt5")){
                qtDetected = 5;
        }
@@ -404,6 +406,9 @@ LddInfo findDependencyInfo(const QString &binaryPath)
 }
 
 int containsHowOften(QStringList haystack, QString needle) {
+    if (qtDetected == 6) {
+        needle = needle.replace("libQt5", "libQt6");
+    }
     int result = haystack.filter(needle).length();
     return result;
 }
@@ -842,7 +847,7 @@ void changeIdentification(const QString &id, const QString &binaryPath)
     runPatchelf(QStringList() << "--set-rpath" << id << binaryPath);
 
     // qt_prfxpath:
-    if (binaryPath.contains("libQt5Core")) {
+    if (qtDetected == 5 && binaryPath.contains("libQt5Core") || qtDetected == 6 && binaryPath.contains("libQt6Core")) {
         LogDebug() << "libQt5Core detected, patching its hardcoded strings";
 
         /* https://codereview.qt-project.org/gitweb?p=qt/qttools.git;a=blob_plain;f=src/windeployqt/utils.cpp;h=e89496ea1f371ed86f6937284c1c801daf576572;hb=7be81b804da102b374c2089aac38353a0383c254
@@ -1040,7 +1045,7 @@ DeploymentInfo deployQtLibraries(QList<LibraryInfo> libraries,
 static QString captureOutput(const QString &command)
 {
     QProcess process;
-    process.start(command, QIODevice::ReadOnly);
+    process.startCommand(command, QIODeviceBase::ReadOnly);
     process.waitForFinished();
 
     if (process.exitStatus() != QProcess::NormalExit) {
@@ -1100,7 +1105,7 @@ DeploymentInfo deployQtLibraries(const QString &appDirPath, const QStringList &a
        QString output = captureOutput(qmakePath + " -query");
        LogDebug() << "-query output from qmake:" << output;
 
-       QStringList outputLines = output.split("\n", QString::SkipEmptyParts);
+       QStringList outputLines = output.split("\n", Qt::SkipEmptyParts);
        foreach (const QString &outputLine, outputLines) {
            int colonIndex = outputLine.indexOf(QLatin1Char(':'));
            if (colonIndex != -1) {
@@ -1157,7 +1162,7 @@ DeploymentInfo deployQtLibraries(const QString &appDirPath, const QStringList &a
    LogDebug() << "allBinaryPaths:" << allBinaryPaths;
 
    QSet<QString> allRPaths = getBinaryRPaths(applicationBundle.binaryPath, true);
-   allRPaths.insert(QLibraryInfo::location(QLibraryInfo::LibrariesPath));
+   allRPaths.insert(QLibraryInfo::path(QLibraryInfo::LibrariesPath));
    LogDebug() << "allRPaths:" << allRPaths;
 
    QList<LibraryInfo> libraries = getQtLibrariesForPaths(allBinaryPaths, appDirPath, allRPaths);

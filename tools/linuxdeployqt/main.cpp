@@ -35,6 +35,7 @@
 #include <QDirIterator>
 #include <sstream>
 #include "excludelist.h"
+#include <QSet>
 
 int main(int argc, char **argv)
 {
@@ -477,7 +478,8 @@ int main(int argc, char **argv)
         // Update deploymentInfo.deployedLibraries - the QML imports
         // may have brought in extra libraries as dependencies.
         deploymentInfo.deployedLibraries += findAppLibraries(appDirPath);
-        deploymentInfo.deployedLibraries = deploymentInfo.deployedLibraries.toSet().toList();
+        QSet<QString> unique(deploymentInfo.deployedLibraries.begin(), deploymentInfo.deployedLibraries.end());
+        deploymentInfo.deployedLibraries = QStringList(unique.begin(), unique.end());
     }
 
     deploymentInfo.usedModulesMask = 0;
